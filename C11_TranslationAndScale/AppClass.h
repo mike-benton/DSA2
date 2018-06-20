@@ -39,6 +39,9 @@ private:
 	ControllerInput* m_pController[8]; //Controller
 	uint m_uActCont = 0; //Active Controller of the Application
 
+	std::vector<MyMesh*> meshVector; //vector of meshes
+	std::vector<vector3> posVector; //vector of positions to put things
+
 public:
 #pragma region Constructor / Run / Destructor
 	/*
