@@ -275,9 +275,17 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+
+	vector3 prevPoint(0, a_fRadius, 0);
+	vector3 currentPoint;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		currentPoint = vector3((a_fRadius * sin((i + 1) * (2 * PI) / a_nSubdivisions)), (a_fRadius * cos((i + 1) * (2 * PI) / a_nSubdivisions)), 0); //calculates next point on edge
+
+		AddTri(prevPoint, currentPoint, vector3(0, 0, 0)); //creates triangle in base
+		AddTri(currentPoint, prevPoint, vector3(0, 0, a_fHeight)); //creates triangle to point
+		prevPoint = currentPoint; //stores point for next triangle
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -299,8 +307,24 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	vector3 prevPoint(0, a_fRadius, 0);
+	vector3 prevPointH(0, a_fRadius, a_fHeight);
+	vector3 currentPoint;
+	vector3 currentPointH;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		currentPoint = vector3((a_fRadius * sin((i + 1) * (2 * PI) / a_nSubdivisions)), (a_fRadius * cos((i + 1) * (2 * PI) / a_nSubdivisions)), 0);
+		currentPointH = vector3(currentPoint.x, currentPoint.y, a_fHeight); //another point for another base
+
+		AddTri(prevPoint, currentPoint, vector3(0, 0, 0)); //first base
+		AddTri(currentPointH, prevPointH, vector3(0, 0, a_fHeight)); //second base
+		AddQuad(currentPoint, prevPoint, currentPointH, prevPointH); //walls are now quads
+
+		prevPoint = currentPoint;
+		prevPointH = currentPointH;
+	}
+
+
 	// -------------------------------
 
 	// Adding information about color
@@ -329,9 +353,34 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	vector3 prevPointOuter(0, a_fOuterRadius, 0);
+	vector3 prevPointOuterH(0, a_fOuterRadius, a_fHeight);
+	vector3 currentPointOuter;
+	vector3 currentPointOuterH;
+	vector3 prevPointInner(0, a_fInnerRadius, 0);
+	vector3 prevPointInnerH(0, a_fInnerRadius, a_fHeight); //man this is a lot of variables
+	vector3 currentPointInner;
+	vector3 currentPointInnerH;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		currentPointOuter = vector3((a_fOuterRadius * sin((i + 1) * (2 * PI) / a_nSubdivisions)), (a_fOuterRadius * cos((i + 1) * (2 * PI) / a_nSubdivisions)), 0); //outer points
+		currentPointOuterH = vector3(currentPointOuter.x, currentPointOuter.y, a_fHeight);
+
+		currentPointInner = vector3((a_fInnerRadius * sin((i + 1) * (2 * PI) / a_nSubdivisions)), (a_fInnerRadius * cos((i + 1) * (2 * PI) / a_nSubdivisions)), 0); //inner points
+		currentPointInnerH = vector3(currentPointInner.x, currentPointInner.y, a_fHeight);
+
+		AddQuad(prevPointOuter, currentPointOuter, prevPointInner, currentPointInner); //lower side
+		AddQuad(currentPointOuterH, prevPointOuterH, currentPointInnerH, prevPointInnerH); //upper side
+
+		AddQuad(currentPointOuter, prevPointOuter, currentPointOuterH, prevPointOuterH); //outer walls
+		AddQuad(prevPointInner, currentPointInner, prevPointInnerH, currentPointInnerH); //inner walls
+
+		prevPointOuter = currentPointOuter;
+		prevPointOuterH = currentPointOuterH;
+
+		prevPointInner = currentPointInner;
+		prevPointInnerH = currentPointInnerH;
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -362,14 +411,48 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
+
+	vector3 prevPointOuter(0, a_fOuterRadius, 0);
+	vector3 prevPointOuterH(0, a_fOuterRadius, a_fOuterRadius);
+	vector3 currentPointOuter;
+	vector3 currentPointOuterH;
+	vector3 prevPointInner(0, a_fInnerRadius, 0);
+	vector3 prevPointInnerH(0, a_fInnerRadius, a_fOuterRadius);
+	vector3 currentPointInner;
+	vector3 currentPointInnerH;
+
+	for (int i = 0; i < a_nSubdivisionsA; i++) {
+		currentPointOuter = vector3((a_fOuterRadius * sin((i + 1) * (2 * PI) / a_nSubdivisionsA)), (a_fOuterRadius * cos((i + 1) * (2 * PI) / a_nSubdivisionsA)), 0); 
+		currentPointOuterH = vector3(currentPointOuter.x, currentPointOuter.y, a_fOuterRadius);
+
+		currentPointInner = vector3((a_fInnerRadius * sin((i + 1) * (2 * PI) / a_nSubdivisionsA)), (a_fInnerRadius * cos((i + 1) * (2 * PI) / a_nSubdivisionsA)), 0); 
+		currentPointInnerH = vector3(currentPointInner.x, currentPointInner.y, a_fOuterRadius);
+
+
+		AddQuad(currentPointOuter, prevPointOuter, currentPointOuterH, prevPointOuterH); 
+		AddQuad(prevPointInner, currentPointInner, prevPointInnerH, currentPointInnerH); 
+
+		prevPointOuter = currentPointOuter;
+		prevPointOuterH = currentPointOuterH;
+
+		prevPointInner = currentPointInner;
+		prevPointInnerH = currentPointInnerH;
+	}
+
+	/**--PSUEDOCODE/Comments
+
+	nested for loops - one going around the large circle, the other completing the sides
+	use math from sphere to create circular sides that scale with # of subdivisions
+	use quads to create sides like done in sphere
+
+
+	**/
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
 }
-void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Color)
+void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Color) //PROBLEMS: Needs to be zipped up
 {
 	if (a_fRadius < 0.01f)
 		a_fRadius = 0.01f;
@@ -380,15 +463,47 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions > 6)
-		a_nSubdivisions = 6;
+	if (a_nSubdivisions > 10)
+		a_nSubdivisions = 10;
 
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	vector3 prevPoint(0, a_fRadius, 0);
+	vector3 currentPoint;
+	float currentHeight = 0;
+	float currentRadius = 0;
+	vector3 lastCurrentPoint; //the "same" point on the last ring around the sphere
+	vector3 lastPrevPoint;
+
+
+	float lastHeight = 0;
+	float lastRadius = 0;
+
+	for (int i = 0; i <= a_nSubdivisions; i++) { //first loop - each iteration is a new ring around the sphere
+		lastHeight = currentHeight;
+		lastRadius = currentRadius;
+
+		currentHeight = 2 * a_fRadius / a_nSubdivisions * i;
+		currentRadius = sin((((float)a_nSubdivisions / 2.0f) - abs((i - ((float)a_nSubdivisions / 2.0f)))) / ((float)a_nSubdivisions / 2.0f) * PI/2) * a_fRadius;
+
+		prevPoint = vector3(prevPoint.x, currentRadius, 0);
+		lastPrevPoint = vector3(lastPrevPoint.x, lastRadius, 0); //I believe the problem is in this line
+
+		for (int j = 0; j < a_nSubdivisions; j++) { //second loop - each iteration fills out the ring
+
+			prevPoint = vector3(prevPoint.x, prevPoint.y, currentHeight);
+			currentPoint = vector3((currentRadius * sin((j + 1) * (2 * PI) / a_nSubdivisions)), (currentRadius * cos((j + 1) * (2 * PI) / a_nSubdivisions)), currentHeight);
+
+			lastPrevPoint = vector3(lastPrevPoint.x, lastPrevPoint.y, lastHeight);
+			lastCurrentPoint = vector3((lastRadius * sin((j) * (2 * PI) / a_nSubdivisions)), (lastRadius * cos((j) * (2 * PI) / a_nSubdivisions)), lastHeight);
+
+			AddQuad(lastPrevPoint, lastCurrentPoint, prevPoint, currentPoint); //let there be walls
+
+			prevPoint = currentPoint;
+			lastPrevPoint = lastCurrentPoint;
+		}
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
