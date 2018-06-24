@@ -10,7 +10,7 @@ void Application::InitVariables(void)
 	m_pModel = new Simplex::Model();
 	m_pModel->Load("Sorted\\WallEye.bto");
 	
-	m_stopsList.push_back(vector3(-4.0f, -2.0f, 5.0f));
+	m_stopsList.push_back(vector3(-4.0f, -2.0f, 5.0f)); //Pushing positions to stopslist
 	m_stopsList.push_back(vector3(1.0f, -2.0f, 5.0f));
 
 	m_stopsList.push_back(vector3(-3.0f, -1.0f, 3.0f));
@@ -53,17 +53,18 @@ void Application::Display(void)
 
 	//calculate the current position
 	vector3 v3CurrentPos;
-	
 
+	static int currentPath = 0;
 
+	v3CurrentPos = glm::lerp(m_stopsList[currentPath], m_stopsList[(currentPath + 1) % m_stopsList.size()], fTimer);
 
-
-	//your code goes here
-	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
-	//-------------------
-	
-
-
+	if (fTimer >= 1.0f) //TIMER
+	{
+		fTimer = m_pSystem->GetDeltaTime(uClock);
+		currentPath++;
+		if (currentPath >= m_stopsList.size())
+			currentPath = 0;
+	}
 	
 	matrix4 m4Model = glm::translate(v3CurrentPos);
 	m_pModel->SetModelMatrix(m4Model);
