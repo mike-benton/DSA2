@@ -23,6 +23,7 @@ void Application::InitVariables(void)
 		m_uOrbits = 7;
 
 	float fSize = 1.0f; //initial size of orbits
+	float fRadius = .95f; //initial orbit radius
 
 	//creating a color using the spectrum 
 	uint uColor = 650; //650 is Red
@@ -36,6 +37,15 @@ void Application::InitVariables(void)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
+
+		std::vector<vector3> stopList; //add a list of stops to the list of lists of stops
+		currentPaths.push_back(0); //add a 0 to the list of paths
+		for (int j = 0; j < i; j++) {
+			stopList.push_back(vector3((fRadius + fSize - 1) * sin((j * (2 * PI / i) + (0.5f * PI))), ((fRadius + fSize - 1) * cos((j * (2 * PI / i)) + (0.5f * PI))), 0)); //finds points
+		}
+		stopList.push_back(vector3((fRadius + fSize - 1) * sin(0.5f * PI), ((fRadius + fSize - 1) * cos(0.5f * PI)), 0)); //adds final point (same as start)
+		std::reverse(stopList.begin(), stopList.end()); //math makes balls go clockwise, this reverses it
+		stopListList.push_back(stopList); //adds list to listlist
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
 	}
@@ -62,15 +72,33 @@ void Application::Display(void)
 	/*
 		The following offset will orient the orbits as in the demo, start without it to make your life easier.
 	*/
-	//m4Offset = glm::rotate(IDENTITY_M4, 1.5708f, AXIS_Z);
+	m4Offset = glm::rotate(IDENTITY_M4, 1.5708f, AXIS_Z);
 
 	// draw a shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 1.5708f, AXIS_X));
 
+		static float timer = 0; //timer
+		static uint clock = m_pSystem->GenClock(); 
+		timer += m_pSystem->GetDeltaTime(clock); 
+
 		//calculate the current position
-		vector3 v3CurrentPos = ZERO_V3;
+		vector3 v3CurrentPos;
+
+		v3CurrentPos = glm::lerp(stopListList[i][currentPaths[i]], stopListList[i][(currentPaths[i] + 1)], timer * 2); //the actual LERPing
+
+		if (timer >= .5f)
+		{
+			timer = m_pSystem->GetDeltaTime(clock); //resets clock
+
+			for (int j = 0; j < currentPaths.size(); j++) { //all of the paths are the same length, so they move to the next path at the same time
+				currentPaths[j]++;
+
+				if (currentPaths[j] >= j + 3)
+					currentPaths[j] = 0; //back to the beginning
+			}
+		}
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 		//draw spheres
