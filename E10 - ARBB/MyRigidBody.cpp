@@ -83,10 +83,39 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 		return;
 
 	m_m4ToWorld = a_m4ModelMatrix;
-	
+
 	//your code goes here---------------------
-	m_v3MinG = m_v3MinL;
-	m_v3MaxG = m_v3MaxL;
+	std::vector<vector3> globalPoints[8];
+
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MinL.x, m_v3MinL.y, m_v3MinL.z, 1))); //converts points to global coords
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z, 1)));
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z, 1)));
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z, 1)));
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z, 1)));
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z, 1)));
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z, 1)));
+	globalPoints->push_back(vector3(m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MaxL.y, m_v3MaxL.z, 1)));
+
+	m_v3MaxG = globalPoints->at(0);
+	m_v3MinG = globalPoints->at(7);
+
+	for (int i = 0; i < globalPoints->size(); i++) //finds extremes
+	{
+		if (m_v3MaxG.x < globalPoints->at(i).x) 
+			m_v3MaxG.x = globalPoints->at(i).x;
+		else if (m_v3MinG.x > globalPoints->at(i).x)
+			m_v3MinG.x = globalPoints->at(i).x;
+
+		if (m_v3MaxG.y < globalPoints->at(i).y) 
+			m_v3MaxG.y = globalPoints->at(i).y;		
+		else if (m_v3MinG.y > globalPoints->at(i).y)
+			m_v3MinG.y = globalPoints->at(i).y;
+
+		if (m_v3MaxG.z < globalPoints->at(i).z) 
+			m_v3MaxG.z = globalPoints->at(i).z;
+		else if (m_v3MinG.z > globalPoints->at(i).z)
+			m_v3MinG.z = globalPoints->at(i).z;
+	}
 	//----------------------------------------
 
 	//we calculate the distance between min and max vectors
