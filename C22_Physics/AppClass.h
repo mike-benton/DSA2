@@ -27,6 +27,10 @@ private:
 	bool m_bGUI_Test = false; //show Test GUI window?
 	bool m_bGUI_Controller = false; //show Controller GUI window?
 
+	bool blocks[7][7]; //array of bools that tell you if there's a block on that tile
+	std::vector<vector2> optimalPath; //where steve is walking
+	int pathIndex = 1; //how far steve is into his journey on a scale from 1 to vector2(6, 6)
+
 	uint m_uRenderCallCount = 0; //count of render calls per frame
 	uint m_uControllerCount = 0; //count of controllers connected
 
@@ -194,6 +198,8 @@ private:
 	OUTPUT: ---
 	*/
 	void CameraRotation(float a_fSpeed = 0.005f);
+	std::vector<vector2> ConstructPath(void);
+	void FollowPath(std::vector<vector2>);
 #pragma endregion
 
 #pragma region Process Events
